@@ -1,0 +1,29 @@
+{
+  "name": "stacklead.js",
+  "version": "0.1.0",
+  "description": "The easiest way to research your new signups and sales leads.",
+  "main": "stacklead.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "uglifyjs stacklead.js -o stacklead.min.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/stacklead/stacklead.js.git"
+  },
+  "keywords": [
+    "sales",
+    "leads",
+    "research",
+    "stacklead"
+  ],
+  "author": "StackLead <team@stacklead.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/stacklead/stacklead.js/issues"
+  },
+  "homepage": "https://stacklead.com",
+  "dependencies": {
+    "uglify-js": "~2.4.13"
+  }
+}

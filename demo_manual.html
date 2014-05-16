@@ -1,0 +1,31 @@
+<html>
+  <head>
+  </head>
+  <body>
+    <form onsubmit="return submitForm();" action="">
+      <div>
+        <input id="name-field" placeholder="Name" name="name">
+      </div>
+      <div>
+        <input id="email-field" placeholder="test@demo.com" name="email">
+      </div>
+      <button type="submit">Submit</button>
+    </form>
+
+    <script type="text/javascript">StackLeadConfig = {automatic: false, client_key: 'client_abc123'};</script>
+    <script type="text/javascript" src='stacklead.min.js'></script>
+    <script type="text/javascript">
+      function submitForm() {
+        var email = document.getElementById('email-field').value;
+        var name = document.getElementById('name-field').value;
+        var lead = {
+          email: email,
+          name: name
+        };
+
+        StackLead.capture(lead);
+        return false;
+      }
+    </script>
+  </body>
+</html>

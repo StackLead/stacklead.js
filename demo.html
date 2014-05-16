@@ -1,0 +1,23 @@
+<html>
+  <head>
+  </head>
+  <body>
+    <form onsubmit="submitForm()">
+      <div>
+        <input id="name-field" placeholder="Name" name="name">
+      </div>
+      <div>
+        <input id="email-field" placeholder="test@demo.com" name="email">
+      </div>
+      <button type="submit">Submit</button>
+    </form>
+
+    <script type="text/javascript">StackLeadConfig = {client_key: 'client_abc123'};</script>
+    <script type="text/javascript" src='stacklead.min.js'></script>
+    <script type="text/javascript">
+      function submitForm() {
+        alert(document.getElementById('email-field').value);
+      }
+    </script>
+  </body>
+</html>
