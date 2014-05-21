@@ -67,13 +67,15 @@ StackLead = function(config) {
     this.clientKey = options.client_key;
     this.automatic = typeof options.automatic === 'undefined' ? true : options.automatic;
     this.person = {};
+    this.researched = [];
+    this.boundElements = [];
     this.init();
   }
 
   StackLead.prototype.init = function init() {
     var self = this;
     // Wrap in anonymous function to ensure `this` is correct
-    setInterval(function(){self._bindInputs();}, BIND_INPUTS_INTERVAL);
+    setInterval(function(){self._bindAll();}, BIND_INPUTS_INTERVAL);
   };
 
   // API calls
@@ -93,11 +95,40 @@ StackLead = function(config) {
       // Email is required
       return;
     }
+    // dup suppression
+    if (self.researched.length > 0) {
+      // TODO(ted) - should polyfill these
+      var alreadyResearched = self.researched.some(function(p){
+        Object.keys(person).forEach(function(k) {
+          return p[k] && person[k] === p[k];
+        });
+      });
+      for (var i=0; i < self.researched.length; i++) {
+        var p = self.researched[i];
+        var matched = true;
+        for (var k in person) {
+          if (!(k in p) || person[k] !== p[k]) {
+            matched = false;
+            break;
+          }
+        }
+        if (matched) {
+          return;
+        }
+      }
+      if (alreadyResearched) {
+        return;
+      }
+    }
     var xmlhttp = getXmlHttpObject();
     xmlhttp.onreadystatechange = function() {
-      if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-        if(typeof(successCallback) === 'function') {
-          successCallback();
+      if (xmlhttp.readyState === 4) {
+        if (xmlhttp.status === 200) {
+          if(typeof(successCallback) === 'function') {
+            successCallback();
+          }
+        } else if (typeof successCallback === 'function') {
+          successCallback(new Error('bad status code: ' + xmlhttp.status + ' message: ' + xmlhttp.responseText));
         }
       }
     };
@@ -107,10 +138,130 @@ StackLead = function(config) {
     xmlhttp.send('client_key=' + encodeURIComponent(this.clientKey) + '&person=' + encodeURIComponent(JSON.stringify(person)));
 
     // Clear person
+    this.researched.push(self.person);
     self.person = {};
   };
 
+  StackLead.prototype._bindAll = function() {
+    this._bindForms();
+    this._bindInputs();
+  };
+
   // Private calls
+  StackLead.prototype._bindForms = function() {
+    var self = this;
+    if (!this.automatic) {
+      return;
+    }
+
+    var forms = document.getElementsByTagName('form');
+    for (var i = 0; i < forms.length; i++) {
+      var f = forms[i];
+      // TODO(ted) - always bind to all forms.
+      //var slForm = f.getAttribute('sl-form');
+      //if (slForm || slForm === '') {
+      self._bindForm(f);
+      //}
+    }
+  };
+
+  StackLead.prototype._bindForm = function(form) {
+    if (typeof form.onsubmit === 'function' && form.onsubmit.name === 'slOnSubmit') {
+      return;
+    }
+    var self = this;
+
+    // mark inputs as bound
+    var inputs = [];
+    var nodeLists = [
+      form.getElementsByTagName('input'),
+      form.getElementsByTagName('select'),
+      form.getElementsByTagName('textarea')
+    ];
+    nodeLists.forEach(function(n) {
+      for (var i = 0; i < n.length; i++) {
+        inputs.push(n[i]);
+        self.boundElements.push(n[i]);
+      }
+    });
+
+    var getOnSubmitFn = function(original) {
+      return function slOnSubmit(event) {
+        var submitted = form.getAttribute('sl-submitted');
+        if (submitted === 'submitted' || submitted === 'invalid') {
+          if (typeof original === 'function') {
+            return original.apply(this, [].slice.call(arguments));
+          } else {
+            return true;
+          }
+        }
+        // create a submit fn
+        var localSubmit = function() {
+          if (form.onsubmit(event) !== false) {
+            if (typeof form.submit === 'function') {
+              form.submit();
+            } else if (typeof form.submit === 'object' && typeof form.submit.click === 'function') {
+              form.submit.click();
+            }
+          }
+        };
+        var inputs = [];
+        var nodeLists = [
+          form.getElementsByTagName('input'),
+          form.getElementsByTagName('select'),
+          form.getElementsByTagName('textarea')
+        ];
+        nodeLists.forEach(function(n) {
+          for (var i = 0; i < n.length; i++) {
+            inputs.push(n[i]);
+          }
+        });
+
+        // build a person from form
+        var person = {};
+        for (var i = 0; i < inputs.length; i++) {
+          var input = inputs[i];
+          var name = input.getAttribute(FIELD_ATTR) || input.name;
+          var value = extractVal(input);
+          if(EMAIL_MATCH.test(value)) {
+            person.email = value;
+          } else if (PHONE_MATCH.test(value)) {
+            person.phone = value;
+          } else {
+            person[name] = value;
+          }
+        }
+
+        if (person.email) {
+          self.capture(person, function(err) {
+            // trigger form submit again.
+            form.setAttribute('sl-submitted', !!err ? 'invalid' : 'submitted');
+            localSubmit();
+          });
+          if (event && typeof event.preventDefault === 'function') {
+            event.preventDefault();
+          }
+          return false;
+        } else {
+          form.setAttribute('sl-submitted', 'invalid');
+          // resubmit form
+          localSubmit();
+          return false;
+        }
+      };
+
+    };
+
+    if (typeof form.onsubmit === 'function') {
+      if (form.onsubmit.name !== 'slOnSubmit') {
+        // Preserve the original
+        form.onsubmit = getOnSubmitFn(form.onsubmit);
+      }
+    } else {
+      // Note: Other code could clobber the track input function we set
+      form.onsubmit = getOnSubmitFn();
+    }
+  };
 
   StackLead.prototype._bindInputs = function bindInputs() {
     var self = this;
@@ -130,7 +281,9 @@ StackLead = function(config) {
     ];
     nodeLists.forEach(function(n) {
       for (var i = 0; i < n.length; i++) {
-        inputs.push(n[i]);
+        if (self.boundElements.indexOf(n[i]) === -1) {
+          inputs.push(n[i]);
+        }
       }
     });
 

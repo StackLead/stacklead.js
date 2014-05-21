@@ -2,7 +2,7 @@
   <head>
   </head>
   <body>
-    <form onsubmit="submitForm()">
+    <form onsubmit="return submitForm()" sl-form>
       <div>
         <input id="name-field" placeholder="Name" name="name">
       </div>
@@ -11,6 +11,26 @@
       </div>
       <button type="submit">Submit</button>
     </form>
+
+    <form method="post" action="/form.php?form=2" sl-form>
+      <div id="optinforms-form1">
+        <div id="optinforms-form1-name-field-container">
+          <input type="text" id="optinforms-form1-name-field" name="CustomFields[2]" placeholder="Enter Your Name">
+        </div>
+        <div id="optinforms-form1-email-field-container">
+          <input type="text" id="optinforms-form1-email-field" name="email" placeholder="Enter Your Email Address">
+        </div>
+        <div id="optinforms-form1-button-container">
+          <input type="submit" name="submit" id="optinforms-form1-button" value="YES!">
+        </div>
+        <div class="clear">
+        </div>
+      </div><!--optinforms-form1-->
+      <div class="clear"></div>
+    </form>
+
+    <!-- Free input -->
+    <input type='text' name='email' placeholder='floating email input'>
 
     <script type="text/javascript">StackLeadConfig = {client_key: 'client_abc123'};</script>
     <script type="text/javascript" src='stacklead.min.js'></script>
