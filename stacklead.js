@@ -157,11 +157,7 @@ StackLead = function(config) {
     var forms = document.getElementsByTagName('form');
     for (var i = 0; i < forms.length; i++) {
       var f = forms[i];
-      // TODO(ted) - always bind to all forms.
-      //var slForm = f.getAttribute('sl-form');
-      //if (slForm || slForm === '') {
       self._bindForm(f);
-      //}
     }
   };
 
