@@ -192,9 +192,12 @@ StackLead = function(config) {
           }
         }
         // create a submit fn
+        var submitButton = null;
         var localSubmit = function() {
           if (form.onsubmit(event) !== false) {
-            if (typeof form.submit === 'function') {
+            if (submitButton && typeof submitButton.click === 'function') {
+              submitButton.click();
+            } else if (typeof form.submit === 'function') {
               form.submit();
             } else if (typeof form.submit === 'object' && typeof form.submit.click === 'function') {
               form.submit.click();
@@ -210,6 +213,9 @@ StackLead = function(config) {
         nodeLists.forEach(function(n) {
           for (var i = 0; i < n.length; i++) {
             inputs.push(n[i]);
+            if (n[i].nodeName.toLowerCase() === 'input' && typeof n[i].type === 'string' && n[i].type.toLowerCase() === 'submit') {
+              submitButton = n[i];
+            }
           }
         });
 
