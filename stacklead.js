@@ -205,7 +205,7 @@ StackLead = function(config) {
         var submitButton = null;
         var localSubmit = function() {
           if (form.onsubmit(event) !== false) {
-            if (submitButton && typeof submitButton.click === 'function') {
+            if (submitButton && typeof submitButton.click === 'function' && !submitButton.disabled) {
               submitButton.click();
             } else if (typeof form.submit === 'function') {
               form.submit();
