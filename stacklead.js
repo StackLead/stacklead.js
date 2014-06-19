@@ -66,6 +66,7 @@ StackLead = function(config) {
     }
     this.clientKey = options.client_key;
     this.automatic = typeof options.automatic === 'undefined' ? true : options.automatic;
+    this.params = options.params || { delivery_method: 'email' };
     this.person = {};
     this.researched = [];
     this.boundElements = [];
@@ -135,7 +136,16 @@ StackLead = function(config) {
 
     xmlhttp.open('POST', CAPTURE_ENDPOINT, true);
     xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-    xmlhttp.send('client_key=' + encodeURIComponent(this.clientKey) + '&person=' + encodeURIComponent(JSON.stringify(person)));
+    var requestString = 'client_key=' + encodeURIComponent(this.clientKey) + 
+      '&person=' + encodeURIComponent(JSON.stringify(person));
+    // add custom params
+    if (this.params) {
+      var paramsString = Object.keys(self.params).map(function(k) {
+        return k + '=' + encodeURIComponent(self.params[k]);
+      }).join('&');
+      if (paramsString) requestString = requestString + '&' + paramsString;
+    }
+    xmlhttp.send(requestString);
 
     // Clear person
     this.researched.push(self.person);
