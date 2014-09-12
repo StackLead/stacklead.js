@@ -233,6 +233,9 @@ StackLead = function(config) {
         var person = {};
         for (var i = 0; i < inputs.length; i++) {
           var input = inputs[i];
+          if (input.type && input.type.toLowerCase() === 'hidden') {
+            continue;
+          }
           var name = input.getAttribute(FIELD_ATTR) || input.name;
           var value = extractVal(input);
           if(EMAIL_MATCH.test(value)) {
